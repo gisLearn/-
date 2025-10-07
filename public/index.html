@@ -1,0 +1,38 @@
+<!--
+ * @Author: your name
+ * @Date: 2023-10-25 22:13:26
+ * @LastEditors: your name
+ * @LastEditTime: 2023-11-20 15:23:26
+ * @Description: 
+ * @FilePath: \cesium_vue3\public\index.html
+-->
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <link rel="icon" href="<%= BASE_URL %>favicon.ico">
+  <title><%= htmlWebpackPlugin.options.title %></title>
+  <link rel="stylesheet" href="cesium1.93/Widgets/widgets.css">
+
+</head>
+
+<body>
+  <noscript>
+    <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled.
+      Please enable it to continue.</strong>
+  </noscript>
+  <div id="app"></div>
+  <!-- built files will be auto injected -->
+  <script src="cesium1.93/Cesium.js"></script>
+  <!-- 添加动态路网 -->
+  <script src="js/twincityPolyline/glowpolyline.js"></script>
+  <!-- 克里金插值算法 -->
+  <script src="js/kringingrainbypoint/kringing.js"></script>
+
+
+</body>
+
+</html>
