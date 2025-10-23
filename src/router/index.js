@@ -66,6 +66,12 @@ const routes = [
         name: '添加军事标绘',
         iconClass: 'fa fa-list',
         component: () => import('@/components/addmilitaryaffairsplotting/index.vue')
+      },
+      {
+        path: 'typhoneScreen',
+        name: '台风大屏',
+        iconClass: 'fa fa-list',
+        component: () => import('@/components/typhoneScreen/index.vue')
       }
     ]
   }

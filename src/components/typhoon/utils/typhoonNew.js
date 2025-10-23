@@ -1250,7 +1250,7 @@ function dataHandler(typhoonTestData) {
     var pointlength = forecast.length;
     //找到经纬度数据，存放在新数组中shuzu
     for (var i = 0; i < forecast.length; i++) {
-        debugger;
+        // debugger;
         var points = forecast[i];
         var typhoon_Rank_name = points.strong;
         var typhoonImage = TyphoonImageRank(typhoon_Rank_name)
