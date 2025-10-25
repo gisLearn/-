@@ -19,8 +19,17 @@
         <Card title="水情">
           <LineEchart />
         </Card>
+        <div class="mapLayer">
+          <MapLayer/>
+        </div>
+        
       </div>
+
+     
     </div>
+   
+    <!-- 克里金插值中的canvasMap -->
+    <canvas id="canvasMap" style="display:none;"></canvas>
   </div>
 </template>
 
@@ -32,6 +41,7 @@ import TyphoonList from './children/TyphoonList.vue'
 import TyphoonInfo from './children/TyphoonInfo.vue'
 import Weather from './children/Weather.vue'
 import LineEchart from './children/LineEchart.vue'
+import MapLayer from './children/MapLayer.vue'
 // 导入台风数据
 import { typhoondata } from "@/components/typhoon/utils/tyTestData.js";
 // 导入台风方法
@@ -42,8 +52,114 @@ import {
 // 添加弹窗方法
 import Bubble from "@/components/typhoon/utils/index.js";
 
+// // 导入点位数据
+import gdqxjpoint from "@/components/typhoneScreen/utils/gdqxjpoint.js";
+// // 导入克里金插值对象
+import {
+  loadKring,
+  _getJsonData,
+  addLYBuildingPoint,
+  removeLYBuildingPoint,
+  changepointshow
+} from "@/components/typhoneScreen/utils/kringinginsance.js";
+
 let viewer = null;
 const typhoonInfoRef = ref("")
+
+// 克里金插值颜色表
+let kringColors = [
+    {
+      min: 0, //最小值
+      max: 15, //最大值
+      color: [
+        //渐变色值
+        "#137902",
+        "#127C00",
+        "#138600",
+        "#159400",
+        "#389E26",
+        "#39A526",
+        "#39AF24",
+        "#3CB925",
+        "#43C92B",
+        "#4BD931",
+        "#50EA34",
+        "#55FF36",
+        "#76FF5D",
+        "#8FFF7B",
+        "#A8FF99"
+      ] //颜色渐变条
+    },
+    {
+      min: 15,
+      max: 30,
+      color: [
+        //渐变色值
+        "#025ABD",
+        "#005DC7",
+        "#0062D1",
+        "#0066D8",
+        "#0068DF",
+        "#006BE6",
+        "#0B78F2",
+        "#1B80F3",
+        "#2F8AF1",
+        "#419AFF",
+        "#5AA8FF",
+        "#77B7FF",
+        "#8CC2FF",
+        "#A6D0FF",
+        "#BFDDFF"
+      ]
+    },
+    {
+      min: 30,
+      max: 45,
+      color: [
+        //渐变色值
+        "#FFF3C7",
+        "#FFF0B7",
+        "#FFEEA8",
+        "#FFEB9D",
+        "#FFE682",
+        "#FFE061",
+        "#FFD83B",
+        "#FFCD04",
+        "#FAC800",
+        "#F5C400",
+        "#ECBD00",
+        "#E4B700",
+        "#D6AC00",
+        "#CAA200",
+        "#C49D00"
+      ]
+    },
+    {
+      min: 45,
+      max: 70,
+      color: [
+        //渐变色值
+        "#FFD8D8",
+        "#FFCDCC",
+        "#FFB6B5",
+        "#FFAEAD",
+        "#FF9E9D",
+        "#FF908F",
+        "#FF7977",
+        "#FF605E",
+        "#F54F4D",
+        "#F53F3D",
+        "#EF2C29",
+        "#E61B18",
+        "#DC0906",
+        "#CB0502",
+        "#BF0300"
+      ]
+    }
+  ];
+
+let  instance =null;//克里金对象
+
 
 const weatherList = ref([
   { label: '温度', value: '23', unit: '℃'},
@@ -80,7 +196,7 @@ const typhoonList = ref([{
 }])
 onMounted(() => {
   initMap();
-  viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(103.486138, 30.465411, 10000000.0) });
+  viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(113.486138, 23.465411, 1300000.0) });
 });
 
 onBeforeUnmount(() => {
@@ -110,6 +226,12 @@ let initMap = () => {
 
   viewer.imageryLayers.removeAll();
 
+  //绘制热力图
+  setTimeout(() => {
+    drawHeatMapEntity();
+  }, 3000);
+  
+
   //  添加鼠标事件弹窗
   addHanderEvent();
 
@@ -134,6 +256,20 @@ let initMap = () => {
       roll: Cesium.Math.toRadians(0)
     }
   });
+
+  var options = {};
+      // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
+      options.defaultResetView = Cesium.Rectangle.fromDegrees(80, 22, 130, 50);
+      // 用于启用或禁用罗盘。true是启用罗盘，false是禁用罗盘。默认值为true。如果将选项设置为false，则罗盘将不会添加到地图中。
+      options.enableCompass = true;
+      // 用于启用或禁用缩放控件。true是启用，false是禁用。默认值为true。如果将选项设置为false，则缩放控件将不会添加到地图中。
+      options.enableZoomControls = true;
+      // 用于启用或禁用距离图例。true是启用，false是禁用。默认值为true。如果将选项设置为false，距离图例将不会添加到地图中。
+      options.enableDistanceLegend = true;
+      // 用于启用或禁用指南针外环。true是启用，false是禁用。默认值为true。如果将选项设置为false，则该环将可见但无效。
+      options.enableCompassOuterRing = true;
+
+      CesiumNavigation.umd(viewer, options);
 };
 
 // 台风点击弹窗
@@ -172,7 +308,6 @@ let changetyphoonCheck = (item) => {
     axios.get(`./data/typhoon/${item.typhoonNum}.json`).then(res => {
       console.log(res)
       let typhoonData = res.data.data[0]
-      console.log(typhoonData)
       let ForecastPathStatus = {
         maindland: true, //预测路径中国大陆
         usa: true, //预测路径美国
@@ -194,6 +329,53 @@ let changetyphoonCheck = (item) => {
     item.ty.removeTyphoon()
   }
    
+}
+
+
+// 绘制热力图实体Entity
+function drawHeatMapEntity() {
+  removeScenekring();
+ 
+    let pointarray = gdqxjpoint.features;
+  let heatMapPoint = [];
+  pointarray.forEach(element => {
+    let objpoint = {
+      lng: element.geometry.coordinates[0],
+      lat: element.geometry.coordinates[1],
+      name:element.properties.name,
+      lte_pci: element.properties.value
+    };
+
+    heatMapPoint.push(objpoint);
+  });
+
+
+  kringColors[3].color.reverse();
+  
+ 
+  let minmax = _getJsonData().minmaxvalue;
+  let coords = _getJsonData().coords;
+  let ex = _getJsonData().ex;
+
+   instance = new loadKring(
+    viewer,
+    heatMapPoint,
+    kringColors,
+    minmax,
+    coords,
+    ex
+  );
+  let entity = instance.init();
+  
+ 
+}
+
+// 移除k克里金热力图
+function removeScenekring(){
+  if(instance){
+    instance.removeSceneEntity();
+    instance=null;
+  }
 }
 
 </script>
@@ -244,6 +426,13 @@ let changetyphoonCheck = (item) => {
     padding: 20px;
     z-index: 10;
     background: rgba(19, 27, 29, 0.9);
+    .mapLayer{
+      // width:120px;
+      // height: 90px;
+      // background-color: #ffffff;
+      margin-left: -50px;
+      margin-top: 170px;
+    }
      
   }
   #cesiumContainer {
