@@ -427,11 +427,12 @@ function removeScenekring(){
     z-index: 10;
     background: rgba(19, 27, 29, 0.9);
     .mapLayer{
+    // position:relative;
       // width:120px;
       // height: 90px;
       // background-color: #ffffff;
       margin-left: -50px;
-      margin-top: 170px;
+      margin-top: 320px;
     }
      
   }
