@@ -1,10 +1,10 @@
 /*
  * @Author: your name
  * @Date: 2021-03-01 14:11:18
- * @LastEditTime: 2025-09-10 20:06:44
+ * @LastEditTime: 2025-11-08 20:52:45
  * @LastEditors: your name
  * @Description: In User Settings Edit
- * @FilePath: \cesium_vue3_yarn\src\components\typhoon\utils\typhoonNew.js
+ * @FilePath: \-\src\components\typhoon\utils\typhoonNew.js
  */
 
 // 导入三角面片绘制
@@ -23,7 +23,7 @@ export var typhoon = function (viewer, Cesium, typhoonData, ForecastPathStatus, 
     this.viewer = viewer;
     this.Cesium = Cesium;
     this.setIntervalTime = null;//定时器
-    this.typhoonSpeed = 2000;
+    this.typhoonSpeed = 800;
     this.typhoonData = typhoonData;//台风数据
     this.pointlayerImage = null;//图片对象组
     this.pointInfo = null;//主点信息组

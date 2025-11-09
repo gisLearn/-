@@ -42,6 +42,8 @@ import TyphoonInfo from './children/TyphoonInfo.vue'
 import Weather from './children/Weather.vue'
 import LineEchart from './children/LineEchart.vue'
 import MapLayer from './children/MapLayer.vue'
+const cxt = getCurrentInstance();
+const bus = cxt.appContext.config.globalProperties.$bus;
 // 导入台风数据
 import { typhoondata } from "@/components/typhoon/utils/tyTestData.js";
 // 导入台风方法
@@ -196,12 +198,16 @@ const typhoonList = ref([{
 }])
 onMounted(() => {
   initMap();
-  viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(113.486138, 23.465411, 1300000.0) });
+  // viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(113.486138, 23.465411, 1300000.0) });
+  
+  bus.on("Bus_changeOption", changeOption);
 });
 
 onBeforeUnmount(() => {
   viewer && viewer.destroy();
   viewer = null;
+
+  bus.off("Bus_changeOption");
 });
 
 let flytopostion = null; //飞行定位
@@ -246,9 +252,9 @@ let initMap = () => {
   viewer._cesiumWidget._creditContainer.style.display = "none";
   viewer.camera.setView({
     destination: Cesium.Cartesian3.fromDegrees(
-      113.36824706049,
-      23.127818196783,
-      2000
+      113.486138,
+      23.465411,
+      1300000
     ),
     orientation: {
       heading: Cesium.Math.toRadians(0),
@@ -256,6 +262,8 @@ let initMap = () => {
       roll: Cesium.Math.toRadians(0)
     }
   });
+
+ 
 
   var options = {};
       // 用于在使用重置导航重置地图视图时设置默认视图控制。接受的值是Cesium.Cartographic 和 Cesium.Rectangle.
@@ -377,6 +385,70 @@ function removeScenekring(){
     instance=null;
   }
 }
+
+
+//   切换图层方法
+let changeOption = (e) => {
+   //清除所有图层影像
+    viewer.imageryLayers.removeAll();
+
+  if (e == "夜景地图") {
+   //夜景地图
+    var tdtLayer = new Cesium.UrlTemplateImageryProvider({
+      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png ",
+      subdomains: ["a", "b", "c", "d"],
+    });
+    viewer.imageryLayers.addImageryProvider(tdtLayer);
+   
+  } else if (e == "影像地图") {
+    // 影像地图
+//天地图遥感影像地图img_w，LAYER=img（影像）
+    var shadedReliefTianditu = new Cesium.WebMapTileServiceImageryProvider({
+      url: "http://t0.tianditu.gov.cn/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=93724b915d1898d946ca7dc7b765dda5",
+      layer: "img",
+      style: "default",
+      format: "tiles",
+      tileMatrixSetID: "w",
+      show: false,
+      maximumLevel: 18
+  })
+  viewer.imageryLayers.addImageryProvider(shadedReliefTianditu, 0)
+  //天地图标注
+  var shadedRelief1 = new Cesium.WebMapTileServiceImageryProvider({
+      url: "http://t0.tianditu.com/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg&tk=f50c5a9a2a952f5df773fbc0ff6c5aec",
+      layer: "tdtAnnoLayer",
+      style: "default",
+      format: "image/jpeg",
+      tileMatrixSetID: "GoogleMapsCompatible",
+      show: false
+  });
+  viewer.imageryLayers.addImageryProvider(shadedRelief1,1);
+   
+  } else if (e == "电子地图") {
+    // 电子地图底图,主要和遥感底图区别在于使用vec_w，LAYER=vec（矢量）
+var shadedReliefTianditu = new Cesium.WebMapTileServiceImageryProvider({
+      url: "http://t0.tianditu.gov.cn/vec_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=vec&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=93724b915d1898d946ca7dc7b765dda5",
+      layer: "img",
+      style: "default",
+      format: "tiles",
+      tileMatrixSetID: "w",
+      show: false,
+      maximumLevel: 18
+  })
+  viewer.imageryLayers.addImageryProvider(shadedReliefTianditu, 0)
+  //天地图标注
+  var shadedRelief1 = new Cesium.WebMapTileServiceImageryProvider({
+      url: "http://t0.tianditu.com/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default.jpg&tk=f50c5a9a2a952f5df773fbc0ff6c5aec",
+      layer: "tdtAnnoLayer",
+      style: "default",
+      format: "image/jpeg",
+      tileMatrixSetID: "GoogleMapsCompatible",
+      show: false
+  });
+  viewer.imageryLayers.addImageryProvider(shadedRelief1,1);
+   
+  }
+};
 
 </script>
 
